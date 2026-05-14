@@ -21,9 +21,12 @@ const GLOBAL_REGISTRY: &str = "9odFrYBBZq6UQC6aGyzMPNXWJQn55kMtfigzhLg6S6L5";
 struct Capability { id: String, description: Option<String>, protocol_id: String, version: String }
 
 #[derive(BorshSerialize)]
+struct PricingEntry { service_id: String, price_usdc: u64 }
+
+#[derive(BorshSerialize)]
 struct RegisterAgentArgs {
     name: String, description: String, capabilities: Vec<Capability>,
-    pricing: Vec<()>, protocols: Vec<String>, agent_id: Option<String>,
+    pricing: Vec<PricingEntry>, protocols: Vec<String>, agent_id: Option<String>,
     agent_uri: Option<String>, x402_endpoint: Option<String>,
 }
 
