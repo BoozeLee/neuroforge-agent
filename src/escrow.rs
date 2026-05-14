@@ -17,7 +17,7 @@ use solana_sdk::{
 use std::str::FromStr;
 use tracing::info;
 
-const SAP_PROGRAM_ID: &str = "SAPpUhsWLJG1FfkGRcXagEDMrMsWGjbky7AythGpFETZ";
+const SAP_PROGRAM_ID: &str = "SAPpUhsWLJG1FfkGRcXagEDMrMsWGjbky7AyhGpFETZ";
 
 fn anchor_discriminator(ns: &str) -> [u8; 8] {
     use sha2::{Digest, Sha256};

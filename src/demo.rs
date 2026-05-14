@@ -66,7 +66,7 @@ pub async fn run() -> Result<()> {
 
     // ── Step 4: Escrow open ───────────────────────────────────────────────────
     println!("\n\x1b[1;36m[STEP 4]\x1b[0m \x1b[1mNeuron fired → Open SAP Escrow\x1b[0m");
-    println!("  Program: SAPpUhsWLJG1FfkGRcXagEDMrMsWGjbky7AythGpFETZ");
+    println!("  Program: SAPpUhsWLJG1FfkGRcXagEDMrMsWGjbky7AyhGpFETZ");
     tokio::time::sleep(Duration::from_millis(800)).await;
     println!("  \x1b[32m✓\x1b[0m create_escrow_v2 → Ccr2yK3h...E1ph (Synapse Sentinel)");
     println!("    deposit: 500_000 lamports | max_calls: 10");
