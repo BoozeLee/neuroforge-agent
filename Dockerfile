@@ -3,7 +3,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y pkg-config libssl-dev && rm -rf /var/lib/apt/lists/*
 COPY Cargo.toml Cargo.lock ./
 COPY src ./src
-RUN cargo build --release --bin neuroforge
+RUN CARGO_BUILD_JOBS=1 cargo build --release --bin neuroforge
 
 FROM debian:bookworm-slim
 RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
