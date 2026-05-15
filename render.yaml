@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: neuroforge-agent
+    runtime: docker
+    region: oregon
+    plan: free
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: RUST_LOG
+        value: neuroforge=info,warn
+      - key: SYNAPSE_RPC_URL
+        value: https://api.mainnet-beta.solana.com
+        sync: false
+      - key: SOLANA_KEYPAIR_PATH
+        value: /app/keys/agent.json
+        sync: false
+    healthCheckPath: /health
+    healthCheckStartupFailureThresholdCount: 10
+    port: 8403
