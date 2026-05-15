@@ -17,4 +17,4 @@ services:
     healthCheckPath: /health
     healthCheckStartupFailureThresholdCount: 10
     port: 8403
-    startCommand: ./neuroforge --serve --port 8403 --demo
+    startCommand: ./neuroforge --serve --port 8403
