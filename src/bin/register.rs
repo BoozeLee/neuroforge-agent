@@ -17,7 +17,12 @@ const DEFAULT_SAP_PROGRAM_ID: &str = "SAPpUhsWLJG1FfkGRcXagEDMrMsWGjbky7AyhGpFET
 const DEFAULT_GLOBAL_REGISTRY: &str = "9odFrYBBZq6UQC6aGyzMPNXWJQn55kMtfigzhLg6S6L5";
 
 #[derive(BorshSerialize)]
-struct Capability { id: String, description: Option<String>, protocol_id: String, version: String }
+struct Capability {
+    id: String,
+    description: Option<String>,
+    protocol_id: Option<String>,
+    version: Option<String>,
+}
 
 #[derive(BorshSerialize)]
 struct PricingEntry { service_id: String, price_usdc: u64 }
@@ -73,8 +78,8 @@ fn main() -> Result<()> {
         capabilities: vec![Capability {
             id: "neuro:snn-escrow".into(),
             description: Some("LIF spiking neural network → SAP escrow settlement".into()),
-            protocol_id: "sap-escrow".to_string(),
-            version: "1.0.0".to_string(),
+            protocol_id: Some("sap-escrow".to_string()),
+            version: Some("1.0.0".to_string()),
         }],
         pricing: vec![],
         protocols: vec!["sap-escrow".into()],
