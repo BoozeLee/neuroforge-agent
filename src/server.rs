@@ -1,7 +1,6 @@
 use crate::snn::SpikingNetwork;
 use axum::{
     extract::State,
-    http::StatusCode,
     response::Json,
     routing::get,
     Router,

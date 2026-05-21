@@ -10,11 +10,16 @@ use clap::Parser;
 use reqwest::Client;
 use solana_rpc_client::rpc_client::RpcClient;
 use solana_sdk::commitment_config::CommitmentConfig;
+use solana_sdk::pubkey::Pubkey;
+use solana_sdk::signature::Keypair;
 use solana_sdk::signer::Signer;
+use std::str::FromStr;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::Mutex;
-use tracing::{error, info, warn};
+use tracing::{info, warn};
+
+const SYNAPSE_SENTINEL: &str = "Ccr2yK3hLALU4p8oNRqrh4dGuvPJTth5KCLMio8cE1ph";
 
 #[derive(Parser, Debug)]
 #[command(name = "neuroforge", about = "Neuromorphic autonomous SAP agent")]
@@ -27,6 +32,24 @@ struct Cli {
     serve: bool,
     #[arg(long, default_value = "8403")]
     port: u16,
+}
+
+fn fire_escrow(rpc_url: String, payer_bytes: [u8; 64], neuron_id: String) {
+    let rpc = RpcClient::new_with_commitment(rpc_url, CommitmentConfig::confirmed());
+    let payer = match Keypair::try_from(&payer_bytes[..]) {
+        Ok(k) => k,
+        Err(e) => { warn!("keypair reconstruct: {e}"); return; }
+    };
+    let sentinel = Pubkey::from_str(SYNAPSE_SENTINEL).unwrap();
+    match escrow::open_escrow(&rpc, &payer, &sentinel, 1_000_000, 1) {
+        Ok(sig) => {
+            info!(sig, neuron = %neuron_id, "escrow opened");
+            if let Err(e) = escrow::settle_calls(&rpc, &payer, &sentinel, 1, &neuron_id) {
+                warn!("settle_calls: {e}");
+            }
+        }
+        Err(e) => warn!("open_escrow: {e}"),
+    }
 }
 
 #[tokio::main]
@@ -48,10 +71,8 @@ async fn main() -> Result<()> {
     let payer = config.load_keypair()?;
     info!(wallet = %payer.pubkey(), "NeuroForge starting");
 
-    let _rpc = RpcClient::new_with_commitment(
-        config.synapse_rpc_url.clone(),
-        CommitmentConfig::confirmed(),
-    );
+    let payer_bytes = payer.to_bytes();
+    let rpc_url = config.synapse_rpc_url.clone();
     let http = Client::new();
 
     let mut net = snn::SpikingNetwork::new();
@@ -71,6 +92,7 @@ async fn main() -> Result<()> {
         info!(port = cli.port, "starting status server");
         let net_arc = Arc::new(Mutex::new(net));
         let net_clone = net_arc.clone();
+        let rpc_url_serve = rpc_url.clone();
 
         tokio::spawn(async move {
             loop {
@@ -92,8 +114,12 @@ async fn main() -> Result<()> {
                         );
                         for id in &fired {
                             if let Some(n) = net.neurons.get(id) {
-                                info!(neuron = n.label, fires = n.fired_count, "neuron action queued");
+                                info!(neuron = n.label, fires = n.fired_count, "neuron fired");
                             }
+                            let url = rpc_url_serve.clone();
+                            let pb = payer_bytes;
+                            let id2 = id.clone();
+                            tokio::task::spawn_blocking(move || fire_escrow(url, pb, id2));
                         }
                     }
                     Err(e) => warn!("market fetch: {e}"),
@@ -123,8 +149,12 @@ async fn main() -> Result<()> {
                 );
                 for id in &fired {
                     if let Some(n) = net.neurons.get(id) {
-                        info!(neuron = n.label, fires = n.fired_count, "neuron action queued");
+                        info!(neuron = n.label, fires = n.fired_count, "neuron fired");
                     }
+                    let url = rpc_url.clone();
+                    let pb = payer_bytes;
+                    let id2 = id.clone();
+                    tokio::task::spawn_blocking(move || fire_escrow(url, pb, id2));
                 }
             }
             Err(e) => warn!("market fetch: {e}"),

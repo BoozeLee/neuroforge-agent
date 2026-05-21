@@ -5,7 +5,6 @@ use solana_sdk::signature::Keypair;
 pub struct Config {
     pub synapse_rpc_url: String,
     pub solana_keypair_path: String,
-    pub usdc_mint: String,
     pub tick_interval_secs: u64,
     pub fire_threshold: f64,
     pub leak_rate: f64,
@@ -19,8 +18,6 @@ impl Config {
                 .unwrap_or_else(|_| "https://api.mainnet-beta.solana.com".into()),
             solana_keypair_path: std::env::var("SOLANA_KEYPAIR_PATH")
                 .unwrap_or_else(|_| "keys/agent.json".into()),
-            usdc_mint: std::env::var("USDC_MINT")
-                .unwrap_or_else(|_| "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v".into()),
             tick_interval_secs: std::env::var("TICK_INTERVAL_SECS")
                 .ok().and_then(|v| v.parse().ok()).unwrap_or(300),
             fire_threshold: std::env::var("FIRE_THRESHOLD")

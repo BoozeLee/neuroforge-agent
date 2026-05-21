@@ -9,13 +9,12 @@ use solana_sdk::{
     pubkey::Pubkey,
     signature::Keypair,
     signer::Signer,
-    system_program,
     transaction::Transaction,
 };
 use std::str::FromStr;
 
-const SAP_PROGRAM_ID: &str = "SAPpUhsWLJG1FfkGRcXagEDMrMsWGjbky7AyhGpFETZ";
-const GLOBAL_REGISTRY: &str = "9odFrYBBZq6UQC6aGyzMPNXWJQn55kMtfigzhLg6S6L5";
+const DEFAULT_SAP_PROGRAM_ID: &str = "SAPpUhsWLJG1FfkGRcXagEDMrMsWGjbky7AyhGpFETZ";
+const DEFAULT_GLOBAL_REGISTRY: &str = "9odFrYBBZq6UQC6aGyzMPNXWJQn55kMtfigzhLg6S6L5";
 
 #[derive(BorshSerialize)]
 struct Capability { id: String, description: Option<String>, protocol_id: String, version: String }
@@ -43,25 +42,27 @@ fn main() -> Result<()> {
     dotenv::dotenv().ok();
     let keypair_path = std::env::var("SOLANA_KEYPAIR_PATH").unwrap_or_else(|_| "keys/agent.json".into());
     let rpc_url = std::env::var("SYNAPSE_RPC_URL").unwrap_or_else(|_| "https://api.mainnet-beta.solana.com".into());
+    let sap_program_id = std::env::var("SAP_PROGRAM_ID").unwrap_or_else(|_| DEFAULT_SAP_PROGRAM_ID.into());
+    let global_registry_str = std::env::var("SAP_GLOBAL_REGISTRY").unwrap_or_else(|_| DEFAULT_GLOBAL_REGISTRY.into());
 
     let raw = std::fs::read_to_string(&keypair_path).context("read keypair")?;
     let bytes: Vec<u8> = serde_json::from_str(raw.trim())?;
     let payer = Keypair::try_from(bytes.as_slice()).context("build keypair")?;
 
-    let rpc = RpcClient::new_with_commitment(rpc_url, CommitmentConfig::confirmed());
-    let program = Pubkey::from_str(SAP_PROGRAM_ID).unwrap();
-    let global_registry = Pubkey::from_str(GLOBAL_REGISTRY).unwrap();
+    let rpc = RpcClient::new_with_commitment(rpc_url.clone(), CommitmentConfig::confirmed());
+    let network = if rpc_url.contains("devnet") { "devnet" } else { "mainnet" };
+    let program = Pubkey::from_str(&sap_program_id).unwrap();
+    let global_registry = Pubkey::from_str(&global_registry_str).unwrap();
 
-    let agent_pda   = pda(&[b"sap_agent",   payer.pubkey().as_ref()], &program);
-    let stats_pda   = pda(&[b"sap_stats",   payer.pubkey().as_ref()], &program);
-    let pricing_pda = pda(&[b"sap_pricing", payer.pubkey().as_ref()], &program);
+    let agent_pda = pda(&[b"sap_agent", payer.pubkey().as_ref()], &program);
+    let stats_pda = pda(&[b"sap_stats", payer.pubkey().as_ref()], &program);
 
     if rpc.get_account(&agent_pda).is_ok() {
         println!("Already registered: {}", payer.pubkey());
         return Ok(());
     }
 
-    println!("Registering NeuroForge on SAP mainnet…");
+    println!("Registering NeuroForge on SAP {network}…");
 
     let args = RegisterAgentArgs {
         name: "NeuroForge".into(),
@@ -72,13 +73,13 @@ fn main() -> Result<()> {
         capabilities: vec![Capability {
             id: "neuro:snn-escrow".into(),
             description: Some("LIF spiking neural network → SAP escrow settlement".into()),
-            protocol_id: "sap-escrow".into(),
-            version: "1.0.0".into(),
+            protocol_id: "sap-escrow".to_string(),
+            version: "1.0.0".to_string(),
         }],
         pricing: vec![],
         protocols: vec!["sap-escrow".into()],
         agent_id: Some("neuroforge-v1".into()),
-        agent_uri: None,
+        agent_uri: Some("https://neuroforge-agent.onrender.com".into()),
         x402_endpoint: None,
     };
 
@@ -92,9 +93,8 @@ fn main() -> Result<()> {
             AccountMeta::new(payer.pubkey(), true),
             AccountMeta::new(agent_pda, false),
             AccountMeta::new(stats_pda, false),
-            AccountMeta::new(pricing_pda, false),
             AccountMeta::new(global_registry, false),
-            AccountMeta::new_readonly(system_program::ID, false),
+            AccountMeta::new_readonly(Pubkey::default(), false),
         ],
         data,
     };

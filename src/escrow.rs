@@ -5,13 +5,11 @@ use anyhow::{Context, Result};
 use borsh::BorshSerialize;
 use solana_rpc_client::rpc_client::RpcClient;
 use solana_sdk::{
-    commitment_config::CommitmentConfig,
     instruction::{AccountMeta, Instruction},
     message::Message,
     pubkey::Pubkey,
     signature::Keypair,
     signer::Signer,
-    system_program,
     transaction::Transaction,
 };
 use std::str::FromStr;
@@ -65,7 +63,7 @@ pub fn open_escrow(
             AccountMeta::new(payer.pubkey(), true),
             AccountMeta::new_readonly(*agent_wallet, false),
             AccountMeta::new(escrow_pda, false),
-            AccountMeta::new_readonly(system_program::ID, false),
+            AccountMeta::new_readonly(Pubkey::default(), false),
         ],
         data,
     };
@@ -107,7 +105,7 @@ pub fn settle_calls(
             AccountMeta::new(payer.pubkey(), true),
             AccountMeta::new(*agent_wallet, false),
             AccountMeta::new(escrow_pda, false),
-            AccountMeta::new_readonly(system_program::ID, false),
+            AccountMeta::new_readonly(Pubkey::default(), false),
         ],
         data,
     };
@@ -124,7 +122,3 @@ pub fn settle_calls(
     Ok(sig.to_string())
 }
 
-pub fn escrow_pda(payer: &Pubkey, agent: &Pubkey) -> Pubkey {
-    let program = Pubkey::from_str(SAP_PROGRAM_ID).unwrap();
-    pda(&[b"sap_escrow_v2", payer.as_ref(), agent.as_ref()], &program)
-}

@@ -121,9 +121,4 @@ impl SpikingNetwork {
             .collect()
     }
 
-    pub fn snapshot(&self) -> Vec<&Neuron> {
-        let mut v: Vec<_> = self.neurons.values().collect();
-        v.sort_by(|a, b| b.membrane_potential.partial_cmp(&a.membrane_potential).unwrap());
-        v
-    }
 }

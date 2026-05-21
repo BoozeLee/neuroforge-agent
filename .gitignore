@@ -2,3 +2,6 @@
 .env
 keys/
 Cargo.lock
+Cargo_test.toml
+test_discriminator/
+test_discriminator.rs
