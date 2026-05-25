@@ -2,6 +2,22 @@
 
 **Category:** General Payment Volume (SAP on-chain escrow)
 
+## 🚀 Quick Start (Demo — No Secrets Needed)
+
+```bash
+git clone https://github.com/BoozeLee/neuroforge-agent.git
+cd neuroforge-agent
+
+cargo build --release
+
+# Run the neuromorphic demo (simulates the LIF SNN firing)
+./target/release/neuroforge --demo
+```
+
+This runs the core Leaky Integrate-and-Fire spiking neural network logic locally with synthetic market signals. No blockchain keys required for the demo.
+
+For real on-chain execution see the "Run on mainnet" section below.
+
 ## What makes it neuromorphic
 
 Uses a **Leaky Integrate-and-Fire (LIF)** spiking neural network where:

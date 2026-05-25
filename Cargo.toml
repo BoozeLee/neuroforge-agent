@@ -36,3 +36,6 @@ bs58 = "0.5"
 rand = "0.8"
 axum = "0.7"
 tower = "0.4"
+
+[workspace]
+
